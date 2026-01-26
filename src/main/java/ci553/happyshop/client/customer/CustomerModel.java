@@ -36,30 +36,32 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
-
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
+        String input = cusView.tfId.getText().trim();
+        if (input.isEmpty()) {
+            theProduct=null;
+            displayLaSearchResult="Enter Product ID or name";
+            updateView();
+            return;
+        }
+        ArrayList<Product> results = new ArrayList<>();
+        if(input.matches("\\d+")) {
+            Product p = databaseRW.searchByProductId(input);
+            if (p != null && p.getStockQuantity() > 0){
+                results.add(p);
             }
             else{
-                theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
+                results = databaseRW.searchProduct(input);
             }
-        }else{
-            theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
-            System.out.println("Please type ProductID.");
+            if (results.isEmpty()){
+                theProduct=null;
+                displayLaSearchResult="No Product was found for:" + input;
+            }
+            else {
+                displayLaSearchResult = ProductListFormatter.buildString(results);
+                theProduct = results.get(0);
+            }
+            updateView();
         }
-        updateView();
     }
 
     void addToTrolley(){
