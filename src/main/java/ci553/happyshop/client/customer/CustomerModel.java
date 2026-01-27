@@ -36,33 +36,39 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
+        System.out.println(">>> CustomerModel.search() CALLED");
+
         String input = cusView.tfId.getText().trim();
         if (input.isEmpty()) {
-            theProduct=null;
-            displayLaSearchResult="Enter Product ID or name";
+            input = cusView.tfName.getText().trim();
+        }
+        if (input.isEmpty()) {
+            theProduct = null;
+            displayLaSearchResult = "Please enter a product ID or name";
             updateView();
             return;
         }
-        ArrayList<Product> results = new ArrayList<>();
-        if(input.matches("\\d+")) {
+        ArrayList<Product> results;
+        if (input.matches("\\d+")) {
+            results = new ArrayList<>();
             Product p = databaseRW.searchByProductId(input);
-            if (p != null && p.getStockQuantity() > 0){
+            if (p != null && p.getStockQuantity() > 0) {
                 results.add(p);
             }
-            else{
-                results = databaseRW.searchProduct(input);
-            }
-            if (results.isEmpty()){
-                theProduct=null;
-                displayLaSearchResult="No Product was found for:" + input;
-            }
-            else {
-                displayLaSearchResult = ProductListFormatter.buildString(results);
-                theProduct = results.get(0);
-            }
-            updateView();
         }
+        else {
+            results = databaseRW.searchProduct(input);
+        }
+        if (results.isEmpty()) {
+            theProduct = null;
+            displayLaSearchResult = "No product was found for: " + input;
+        } else {
+            displayLaSearchResult = ProductListFormatter.buildString(results);
+            theProduct = results.get(0); // allow Add to Trolley to work
+        }
+        updateView();
     }
+
 
     void addToTrolley(){
         if(theProduct!= null){
