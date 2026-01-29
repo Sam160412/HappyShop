@@ -27,7 +27,7 @@ public class CustomerModel {
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
-
+    private ArrayList<Product> searchResults = new ArrayList<>();
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
@@ -36,31 +36,40 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
+        System.out.println(">>> CustomerModel.search() CALLED");
 
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
-            }
-            else{
-                theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
-            }
-        }else{
-            theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
-            System.out.println("Please type ProductID.");
+        String input = cusView.tfId.getText().trim();
+        if (input.isEmpty()) {
+            input = cusView.tfName.getText().trim();
         }
+        if (input.isEmpty()) {
+            theProduct = null;
+            displayLaSearchResult = "Please enter a product ID or name";
+            updateView();
+            return;
+        }
+        ArrayList<Product> results;
+        if (input.matches("\\d+")) {
+            results = new ArrayList<>();
+            Product p = databaseRW.searchByProductId(input);
+            if (p != null && p.getStockQuantity() > 0) {
+                results.add(p);
+            }
+        }
+        else {
+            results = databaseRW.searchProduct(input);
+        }
+        if (results.isEmpty()) {
+            theProduct = null;
+            displayLaSearchResult = "No product was found for: " + input;
+        } else {
+            displayLaSearchResult = ProductListFormatter.buildString(results);
+            theProduct = results.get(0); // allow Add to Trolley to work
+        }
+        searchResults = results;
         updateView();
     }
+
 
     void addToTrolley(){
         if(theProduct!= null){
@@ -94,7 +103,24 @@ public class CustomerModel {
         //sort by Id
         trolley.sort((p1,p2) -> p1.getProductId().compareTo(p2.getProductId()));
     }
-
+    void updateProductQuantity(String productId,int newqty) {
+        for (Product p : trolley){
+            if(p.getProductId().equals(productId)){
+                if (newqty <= 0) {
+                    trolley.remove(p);
+                } else if (newqty <= p.getStockQuantity()) {
+                    p.setOrderedQuantity(newqty);
+                }
+                updateView();
+                return;
+            }
+        }
+    }
+    void removeFromTrolley(String productId){
+        trolley.removeIf(p -> p.getProductId().equals(productId));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
             // Group the products in the trolley by productId to optimize stock checking
@@ -199,5 +225,8 @@ public class CustomerModel {
     }
     public void setTheProduct(Product theProduct) {
         this.theProduct = theProduct;
+    }
+    public ArrayList<Product> getSearchResults() {
+        return searchResults;
     }
 }
