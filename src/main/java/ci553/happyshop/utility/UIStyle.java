@@ -39,11 +39,11 @@ public final class UIStyle {
     public static final int removeProNotifierWinWidth = customerWinWidth / 2 + 160;
     public static final int removeProNotifierWinHeight = 230;
 
-    public static final int pickerWinWidth = 310;
+    public static final int pickerWinWidth = 250;
     public static final int pickerWinHeight = 300;
 
     public static final int trackerWinWidth = 210;
-    public static final int trackerWinHeight = 300;
+    public static final int trackerWinHeight = 250;
 
     public static final int warehouseWinWidth = 630;
     public static final int warehouseWinHeight = 300;
@@ -52,16 +52,16 @@ public final class UIStyle {
     public static final int HistoryWinWidth = 300;
     public static final int HistoryWinHeight = 140;
 
-    public static final int EmergencyExitWinWidth = 200;
-    public static final int EmergencyExitWinHeight = 300;
+    public static final int EmergencyExitWinWidth = 180;
+    public static final int EmergencyExitWinHeight = 150;
 
     public static final String labelTitleStyle = "-fx-font-weight: bold; " +
-            "-fx-font-size: 16px; -fx-text-fill: purple;";
+            "-fx-font-size: 16px; -fx-text-fill: #1E3A8A;";
 
     public static final String labelStyle = "-fx-font-weight: bold; " +
             "-fx-font-size: 14px; " +
-            "-fx-text-fill: black; " +
-            "-fx-background-color: lightblue;";
+            "-fx-text-fill: #1E293B; ";
+    // "-fx-background-color: lightblue;";
 
     public static final String labelLowStockStyle =
             "-fx-font-size: 12px; -fx-text-fill: red;";
@@ -72,26 +72,30 @@ public final class UIStyle {
     public static final String buttonStyle = "-fx-font-size: 15";
 
     public static final String rootStyle = "-fx-padding: 8px; " +
-            "-fx-background-color: lightgreen";
+            "-fx-background-color: #EEf4FF ";
 
     public static final String rootStyleBlue = "-fx-padding: 8px; " +
-            "-fx-background-color: lightblue";
+            "-fx-background-color: #6DC2D1;";
 
     public static final String rootStyleGray = "-fx-padding: 8px; " +
-            "-fx-background-color: lightgray";
+            "-fx-background-color: #BFDBFE";
 
     public static final String rootStyleWarehouse = "-fx-padding: 8px; " +
-            "-fx-background-color: lightpink";
+            "-fx-background-color: #DBEAFE;";
 
     public static final String rootStyleYellow = "-fx-padding: 8px; " +
-            "-fx-background-color: lightyellow";
+            "-fx-background-color: #93C5FD;";
 
     public static final String rootVipCustomerStyle = "-fx-padding: 8px; " +
             "-fx-background-color: burlywood";
 
     public static final String spinnerArrowStyle = "-fx-font-size: 12px; -fx-padding: 0;";
 
-    public static final String textFiledStyle = "-fx-font-size: 16";
+    public static final String textFiledStyle = "-fx-font-size: 16"
+            +"fx-background-color: white;" +
+            "-fx-border-color: #CBD5E1;" +
+            "-fx-border-radius: 6;"+
+            "-fx-padding: 6;";
     public static final String smallTextFiledStyle = "-fx-font-size: 14";
     public static final String tinyTextFiledStyle = "-fx-font-size: 12";
 
