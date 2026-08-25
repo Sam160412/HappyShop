@@ -169,3 +169,4 @@ class CustomerModelTest {
         assertEquals("0002", trolley.get(1).getProductId());
     }
 }
+//J unit testing implemented
