@@ -27,7 +27,7 @@ public class CustomerModel {
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
-
+    private ArrayList<Product> searchResults = new ArrayList<>();
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
@@ -66,6 +66,7 @@ public class CustomerModel {
             displayLaSearchResult = ProductListFormatter.buildString(results);
             theProduct = results.get(0); // allow Add to Trolley to work
         }
+        searchResults = results;
         updateView();
     }
 
@@ -102,7 +103,24 @@ public class CustomerModel {
         //sort by Id
         trolley.sort((p1,p2) -> p1.getProductId().compareTo(p2.getProductId()));
     }
-
+    void updateProductQuantity(String productId,int newqty) {
+        for (Product p : trolley){
+            if(p.getProductId().equals(productId)){
+                if (newqty <= 0) {
+                    trolley.remove(p);
+                } else if (newqty <= p.getStockQuantity()) {
+                    p.setOrderedQuantity(newqty);
+                }
+                updateView();
+                return;
+            }
+        }
+    }
+    void removeFromTrolley(String productId){
+        trolley.removeIf(p -> p.getProductId().equals(productId));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
             // Group the products in the trolley by productId to optimize stock checking
@@ -207,5 +225,8 @@ public class CustomerModel {
     }
     public void setTheProduct(Product theProduct) {
         this.theProduct = theProduct;
+    }
+    public ArrayList<Product> getSearchResults() {
+        return searchResults;
     }
 }

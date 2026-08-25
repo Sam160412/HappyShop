@@ -1,5 +1,6 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
@@ -14,7 +15,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
-
+import javafx.collections.FXCollections;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -36,20 +37,19 @@ public class CustomerView  {
     private HBox hbRoot; // Top-level layout manager
     private VBox vbTrolleyPage;  //vbTrolleyPage and vbReceiptPage will swap with each other when need
     private VBox vbReceiptPage;
-
+private VBox trolleyBox;
     TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
     TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
 
     //four controllers needs updating when program going on
     private ImageView ivProduct; //image area in searchPage
-    private Label lbProductInfo;//product text info in searchPage
     private TextArea taTrolley; //in trolley Page
     private TextArea taReceipt;//in receipt page
 
     // Holds a reference to this CustomerView window for future access and management
     // (e.g., positioning the removeProductNotifier when needed).
     private Stage viewWindow;
-
+    private Spinner<Product> SearchResultSpinner;
     public void start(Stage window) {
         VBox vbSearchPage = createSearchPage();
         vbTrolleyPage = CreateTrolleyPage();
@@ -108,11 +108,14 @@ public class CustomerView  {
         ivProduct.setPreserveRatio(true); // Image keeps its original shape and fits inside 60×60
         ivProduct.setSmooth(true); //make it smooth and nice-looking
 
-        lbProductInfo = new Label("Thank you for shopping with us.");
-        lbProductInfo.setWrapText(true);
-        lbProductInfo.setMinHeight(Label.USE_PREF_SIZE);  // Allow auto-resize
-        lbProductInfo.setStyle(UIStyle.labelMulLineStyle);
-        HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo);
+        SearchResultSpinner = new Spinner<>();
+        SearchResultSpinner.setPrefWidth(300);
+        SearchResultSpinner.setEditable(false);
+        //lbProductInfo = new Label("Thank you for shopping with us.");
+       // lbProductInfo.setWrapText(true);
+       // lbProductInfo.setMinHeight(Label.USE_PREF_SIZE);  // Allow auto-resize
+       // lbProductInfo.setStyle(UIStyle.labelMulLineStyle);
+        HBox hbSearchResult = new HBox(5, ivProduct, SearchResultSpinner);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
         VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);
@@ -129,7 +132,11 @@ public class CustomerView  {
 
         taTrolley = new TextArea();
         taTrolley.setEditable(false);
-        taTrolley.setPrefSize(WIDTH/2, HEIGHT-50);
+        taTrolley.setVisible(false);
+        taTrolley.setManaged(false);
+
+        trolleyBox = new VBox(8);
+       // taTrolley.setPrefSize(WIDTH/ 2,HEIGHT/ -50);//
 
         Button btnCancel = new Button("Cancel");
         btnCancel.setOnAction(this::buttonClicked);
@@ -143,7 +150,7 @@ public class CustomerView  {
         hbBtns.setStyle("-fx-padding: 15px;");
         hbBtns.setAlignment(Pos.CENTER);
 
-        vbTrolleyPage = new VBox(15, laPageTitle, taTrolley, hbBtns);
+        vbTrolleyPage = new VBox(15, laPageTitle, trolleyBox, hbBtns);
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
         vbTrolleyPage.setStyle("-fx-padding: 15px;");
@@ -194,8 +201,8 @@ public class CustomerView  {
     public void update(String imageName, String searchResult, String trolley, String receipt) {
 
         ivProduct.setImage(new Image(imageName));
-        lbProductInfo.setText(searchResult);
-        taTrolley.setText(trolley);
+        updateSearchResultSpinner();
+        updateTrolleyRows();
         if (!receipt.equals("")) {
             showTrolleyOrReceiptPage(vbReceiptPage);
             taReceipt.setText(receipt);
@@ -215,4 +222,45 @@ public class CustomerView  {
         return new WindowBounds(viewWindow.getX(), viewWindow.getY(),
                   viewWindow.getWidth(), viewWindow.getHeight());
     }
+    private HBox  createTrolleyRow(Product product) {
+        Label name = new Label(
+                product.getProductId() + "-" + product.getProductDescription());
+        name.setPrefWidth(200);
+        Spinner<Integer> qtySpinner = new Spinner<>(1, product.getStockQuantity(),product.getOrderedQuantity());
+        qtySpinner.valueProperty().addListener((obs,oldVal,newVal) -> {
+            cusController.getCustomerModel().updateProductQuantity(product.getProductId(), newVal);
+        });
+        Button removeButton = new Button("X");
+        removeButton.setOnAction(e -> cusController.getCustomerModel().removeFromTrolley(product.getProductId()));
+        HBox row = new HBox(10,name,qtySpinner,removeButton);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+
+    }
+    private void updateTrolleyRows(){
+        trolleyBox.getChildren().clear();
+        for (Product p: cusController.getCustomerModel().getTrolley()){
+            trolleyBox.getChildren().add(createTrolleyRow(p));
+        }
+    }
+    private void updateSearchResultSpinner(){
+        var results = cusController.getCustomerModel().getSearchResults();
+
+        if(results == null || results.isEmpty()) {
+            SearchResultSpinner.setValueFactory(null);
+            return;
+
+        }
+        SpinnerValueFactory<Product> vf = new SpinnerValueFactory.ListSpinnerValueFactory<>(javafx.collections.FXCollections.observableArrayList(results));
+        SearchResultSpinner.setValueFactory(vf);
+        SearchResultSpinner.getValueFactory().setValue(results.get(0));
+        SearchResultSpinner.valueProperty().addListener((obs,oldP,newP) -> {
+            if (newP != null) {
+                cusController.getCustomerModel().setTheProduct(newP);
+                ivProduct.setImage(new Image(newP.getProductImageName()));
+            }
+        });
+
+    }
 }
+
